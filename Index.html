@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Scalable TweetMap</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Loading Bootstrap -->
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- Loading Flat UI -->
+    <link href="css/flat-ui.css" rel="stylesheet">
+    <link href="css/map.css" rel="stylesheet">
+    <link href="css/flatui-colorDrop.css" rel="stylesheet">
+
+    <link rel="shortcut icon" href="images/favicon.ico">
+
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements. All other JS at the end of file. -->
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.js"></script>
+      <![endif]-->
+  </head>
+  <body>
+  <script>
+  // This is called with the results from from FB.getLoginStatus().
+  
+  function statusChangeCallback(response) {
+    console.log('statusChangeCallback');
+    console.log(response);
+    // The response object is returned with a status field that lets the
+    // app know the current login status of the person.
+    // Full docs on the response object can be found in the documentation
+    // for FB.getLoginStatus().
+    if (response.status === 'connected') {
+      // Logged into your app and Facebook.
+      testAPI();
+    } else if (response.status === 'not_authorized') {
+      // The person is logged into Facebook, but not your app.
+      document.getElementById('status').innerHTML = 'Please log ' +
+        'into this app.';
+    } else {
+      // The person is not logged into Facebook, so we're not sure if
+      // they are logged into this app or not.
+      document.getElementById('status').innerHTML = 'Please log ' +
+        'into Facebook.';
+    }
+  }
+  // This function is called when someone finishes with the Login
+  // Button.  See the onlogin handler attached to it in the sample
+  // code below.
+  function checkLoginState() {
+    FB.getLoginStatus(function(response) {
+      statusChangeCallback(response);
+    });
+  }
+ window.fbAsyncInit = function() {
+  FB.init({
+    appId      : '534752083376519',
+    cookie     : true,  // enable cookies to allow the server to access 
+                        // the session
+    xfbml      : true,  // parse social plugins on this page
+    version    : 'v2.5' // use graph api version 2.5
+  });
+  // Now that we've initialized the JavaScript SDK, we call 
+  // FB.getLoginStatus().  This function gets the state of the
+  // person visiting this page and can return one of three states to
+  // the callback you provide.  They can be:
+  //
+  // 1. Logged into your app ('connected')
+  // 2. Logged into Facebook, but not your app ('not_authorized')
+  // 3. Not logged into Facebook and can't tell if they are logged into
+  //    your app or not.
+  //
+  // These three cases are handled in the callback function.
+  FB.getLoginStatus(function(response) {
+    statusChangeCallback(response);
+  });
+  };
+  // Load the SDK asynchronously
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+  // Here we run a very simple test of the Graph API after login is
+  // successful.  See statusChangeCallback() for when this call is made.
+  function testAPI() {
+    console.log('Welcome!  Fetching your information.... ');
+    FB.api('/me', function(response) {
+      console.log('Successful login for: ' + response.name);
+      document.getElementById('status').innerHTML =
+        'Thanks for logging in, ' + response.name + '!';
+    });
+  }
+</script>
+
+<!--
+  Below we include the Login Button social plugin. This button uses
+  the JavaScript SDK to present a graphical Login button that triggers
+  the FB.login() function when clicked.
+-->
+
+
+
+<div id="status">
+</div>
+    <aside id="sidebar" class="wet-asphalt">
+        <header>
+            <h3 class="turquoise-text">Scalable TweetMap</h3>
+
+        </header>
+
+
+        <ul class="sidebar-options">
+            <li>
+                <h4><b><i>Trending  HashTags</i></b></h4>
+
+                <select id="dropdown" onChange = "myFunction(value)">
+                    <option  >---select---</option>
+                    <option value="trump" >Donald Trump</option>
+                    <option value="gym" >Gym</option>
+                    <option value="music" >Music</option>
+                    <option value="food" >Food</option>
+                    <option value="thanksgiving" >Thanksgiving</option>
+                    <option value="usa" >USA</option>
+                    <option value="life" >Life</option>
+                    <option value="body" >Body</option>
+                </select>
+
+            </li>
+                        <h2><b> Total Hits: <span id ="count" style = "color: red">  0 </h2> </span></b></h2></br>
+                        <p> Please Login to see live tweets.</p>
+            <div class="fb-login-button" data-max-rows="1" data-size="xlarge" data-show-faces="false" data-auto-logout-link="true"></div>
+
+        </ul>
+
+    </aside>
+    <div id="map">
+
+    </div>
+    <!-- /#map -->
+        <script src="https://sdk.amazonaws.com/js/aws-sdk-2.3.6.min.js"></script>
+        <script type="text/javascript">
+          // See the Configuring section to configure credentials in the SDK
+          // Configure your region
+          AWS.config.region = 'us-east-1';
+          var creds = new AWS.Credentials({
+        accessKeyId: "", secretAccessKey: "" //UserPool Client ID and Client Secret
+});
+        </script>
+
+    <!-- Load JS here for greater good =============================-->
+    <script src="js/jquery-1.8.3.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/flatui-colorDrop.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&key=AIzaSyDT9RbTe9sKcc645i45LWkFPZKVKo8zHMs&sensor=false"></script>
+      <script>
+       var map = new google.maps.Map( document.getElementById( 'map' ), {
+        zoom: 5,
+        center: new google.maps.LatLng(40.7128, -74.0059),
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+                minZoom: 1
+    });  
+        
+       (function( $, google ) {
+        
+          
+         var image = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png';
+         var beachMarker = new google.maps.Marker({
+             position: {lat: 40.7128, lng: -74.0059},
+             map: map,
+             icon: image
+         });
+         $('.btn-group').colorDrop({
+            onChange: function() {
+                changeMapStyles( map );
+            }
+        });
+         $('#map').height($(window).height());
+         function changeMapStyles( map ) {
+            var hueColor = '#e67e22',
+            roadColor = '#d35400',
+            waterColor = '#2980b9',
+            parkColor = '#16a085',
+            landscapeColor = '#bdc3c7';
+            var featureOpts = [
+            {
+              stylers: [
+              { hue: hueColor }
+              ]
+          },{
+            elementType: "labels",
+            stylers: [{
+                visibility: "on"
+            }]
+        },{
+            featureType: "road",
+            stylers: [{
+                visibility: "on"
+            }, {
+                color: roadColor
+            }]
+        },{
+            featureType: "water",
+            stylers: [{
+                visibility: "on"
+            }, {
+                color: waterColor
+            }]
+        },
+        {
+            featureType: "poi"
+            ,stylers: [{
+                visibility: "on"
+            }, {
+                color: parkColor
+            }]
+        },
+        {
+            featureType: "landscape",
+            stylers: [{
+                visibility: "on"
+            }, {
+                color: landscapeColor
+            }]
+        }
+        ];  
+        map.setOptions({
+            styles: featureOpts
+        });            
+    };
+    changeMapStyles( map );
+})( jQuery, google );
+var markers = [];
+var hashTag = '';
+var refreshIntervalId='';
+function myFunction(value) {
+        setMapOnAll(null);
+        document.getElementById("count").innerHTML = "Loading...";
+    hashTag = value;
+  $.ajax({
+    dataType: "text",
+    url: ''+value, //Subscriber Machine Public DNS with "/" at the end
+    success: function (data) {
+        data = JSON.parse(data);
+                        //alert(data[0]._source.location.coordinates);
+                        console.log(data.length);
+                        var infowindow = new google.maps.InfoWindow();
+                        var contentString = '';
+                        document.getElementById("count").innerHTML = data.length;
+                
+                        for( i =0; i < data.length; i++) {
+             try{
+                                //console.log(data[i]._source.location.coordinates);
+                var latLng = new google.maps.LatLng(data[i]._source.location.coordinates[0],data[i]._source.location.coordinates[1]); 
+                                
+                contentString = "<b>Username:</b> "+data[i]._source.username+"<br><b>Tweet: </b>"+data[i]._source.text+"<br><b>Sentiment Score: </b>"+(data[i]._source.sentiment.score*100).toFixed(2)+"% <i>"+data[i]._source.sentiment.type+"</i>";
+                                
+                        // Creating a marker and putting it on the map
+                                var marker = new google.maps.Marker({
+                                        position: latLng,
+                                        map: map,
+                                        clickable: true,
+                                        content: contentString,
+                                                                                title: "Location: "+JSON.stringify(data[i]._source.location.coordinates)
+                                });
+                                google.maps.event.addListener(marker, 'click', (function (marker, i) {
+                                        return function () {
+                                                infowindow.setContent(marker.content);
+                                                infowindow.open(map, marker);
+                                        }
+                                })(marker, i));
+                                
+                                //marker.setAnimation(google.maps.Animation.DROP);
+                                markers.push(marker);
+                        
+                        if(data[i]._source.sentiment.type == "positive") {
+             marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png')
+                         }
+                         else if(data[i]._source.sentiment.type == "neutral") {
+                                 marker.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png')
+                         }
+                         else if(data[i]._source.sentiment.type == "negative") {
+                                 marker.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png')
+                         }
+                 }
+     catch(e) {
+         console.log("Syntax Error: "+e);
+     }
+ }
+ 
+ 
+}
+});
+FB.getLoginStatus(function(response) {
+  if (response.status === 'connected') {// logged in
+        refreshIntervalId = setInterval(showTweets,1000);
+    console.log('You are now logged in to Facebook.');
+  } else {
+    alert('Please Login to see LIVE tweets');
+  }
+});
+}
+function setMapOnAll(map) {
+    for (var i = 0; i < markers.length; i++) {
+      markers[i].setMap(map);
+  }
+}
+var showTweets = function() { //trying to fetch tweets from sqs.
+var recParams = {
+        QueueUrl: '', /* SQS URL required */
+        MaxNumberOfMessages: 1,
+        AttributeNames: [
+        "All"
+        ],
+        /* more items */
+        VisibilityTimeout: 60,
+        WaitTimeSeconds: 20
+};
+var accessToken ='';
+FB.getLoginStatus(function(response) {
+  if (response.status === 'connected') {
+    accessToken = response.authResponse.accessToken;
+  } 
+  else {
+        clearInterval(refreshIntervalId);
+        throw new Error("No login information found.");
+        }
+        AWS.config.region = 'us-east-1'; 
+        AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+      IdentityPoolId: '', // Identity PoolId from Federated identities and then into sample code
+      Logins: {
+        'graph.facebook.com': accessToken
+      }
+    });
+        
+                var sqs = new AWS.SQS();
+                sqs.receiveMessage(recParams, function(err, data) {
+                        if (err) console.log(err, err.stack); // an error occurred
+                        else    {
+                        var fetchedText = {}; 
+                        try{
+                                console.log("Received "+JSON.stringify(data));
+                                fetchedText = JSON.parse(data.Messages[0].Body);
+                                try {
+                                        fetchedText = JSON.parse(JSON.parse(fetchedText.Message).http);
+                                }
+                                catch(e) {
+                                };
+                                var tweet = String(fetchedText.text);
+                                console.log("Fetched: "+fetchedText.text);
+                                console.log(tweet.indexOf(hashTag) > -1);
+                                var latLng = new google.maps.LatLng(fetchedText.location.coordinates[0],fetchedText.location.coordinates[1]); 
+                                
+                                // Creating a marker and putting it on the map
+                                if(tweet.indexOf(hashTag) > -1 ) 
+                                {
+                                contentString = "<b>Username:</b> "+fetchedText.username+"<br><b>Tweet: </b>"+fetchedText.text+"<br><b>Sentiment Score: </b>"+(fetchedText.sentiment.score*100).toFixed(2)+"% <i>"+fetchedText.sentiment.type+"</i>";
+                                var infowindow = new google.maps.InfoWindow({
+                                        content: contentString
+                                  });
+                                var marker = new google.maps.Marker({
+                                        position: latLng,
+                                                                               map: map,
+                                        clickable: true,
+                                        content: contentString,
+                                        title: "Location: "+fetchedText.location.coordinates
+                                });
+                                google.maps.event.addListener(marker, 'click', (function (marker) {
+                                        return function () {
+                                                infowindow.setContent(marker.content);
+                                                infowindow.open(map, marker);
+                                        }
+                                })(marker));
+                                if(fetchedText.sentiment.type == "positive") {
+                                 marker.setIcon('http://maps.google.com/mapfiles/ms/icons/green-dot.png')
+                                 }
+                                 else if(fetchedText.sentiment.type == "neutral") {
+                                         marker.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png')
+                                 }
+                                 else if(fetchedText.sentiment.type == "negative") {
+                                         marker.setIcon('http://maps.google.com/mapfiles/ms/icons/red-dot.png')
+                                 }
+                                markers.push(marker);
+                                marker.setAnimation(google.maps.Animation.DROP);
+                                marker.setMap(map);
+                                var count = document.getElementById("count").innerHTML;
+                                
+                                var count = +count + +1;
+                                document.getElementById("count").innerHTML =count;
+                                }
+                                
+                                }
+                                catch(e){
+                                        console.log(e);
+                                        };
+                                }
+                                });
+                                });
+};
+</script>
+</body>
+</html>
